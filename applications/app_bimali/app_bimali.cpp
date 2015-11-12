@@ -3,7 +3,7 @@
  * This example shows how to:
  * initialize a femus application;
  * define the multilevel-mesh object mlMsh;
- * read from the file ./input/square.neu the coarse-level mFixed terminal outputesh and associate it to mlMsh;
+ * read from the file ./input/square.neu the coarse-level mesh and associate it to mlMsh;
  * add in mlMsh uniform refined level-meshes;
  * define the multilevel-solution object mlSol associated to mlMsh;
  * add in mlSol different types of finite element solution variables;
@@ -21,10 +21,6 @@
 
 using namespace femus;
 
-// double InitalValueU(const std::vector < double >& x) {
-//   return x[0] + x[1];
-// } 
-
 bool SetBoundaryCondition(const std::vector < double >& x, const char solName[], double& value, const int faceName, const double time) {
   bool dirichlet = true; //dirichlet
   value = 0;
@@ -35,6 +31,10 @@ bool SetBoundaryCondition(const std::vector < double >& x, const char solName[],
   return dirichlet;
 }
 
+double InitalValueU(const std::vector < double >& x) {
+  return x[0] + x[1];
+}
+
 void AssemblePoissonProblem(MultiLevelProblem& ml_prob);
 
 double GetExactSolutionLaplace(const std::vector < double >& x) {
@@ -42,12 +42,11 @@ double GetExactSolutionLaplace(const std::vector < double >& x) {
   return -pi * pi * cos(pi * x[0]) * cos(pi * x[1]) - pi * pi * cos(pi * x[0]) * cos(pi * x[1]);
 };
 
-
-int main(int argc, char** args){
+int main(int argc, char** args) {
 
   // init Petsc-MPI communicator
   FemusInit mpinit(argc, args, MPI_COMM_WORLD);
-
+//----------------------------------------Solution Begin-----------------------------------------
   // define multilevel mesh
   MultiLevelMesh mlMsh;
   double scalingFactor = 1.;
@@ -59,17 +58,23 @@ int main(int argc, char** args){
   unsigned numberOfSelectiveLevels = 0;
   mlMsh.RefineMesh(numberOfUniformLevels , numberOfUniformLevels + numberOfSelectiveLevels, NULL);
   mlMsh.PrintInfo();
-
+//----------------------------------------Solution End-----------------------------------------
+  
+//----------------------------------------Problem Begin-----------------------------------------
   // define the multilevel solution and attach the mlMsh object to it
   MultiLevelSolution mlSol(&mlMsh);
 
   // add variables to mlSol
   mlSol.AddSolution("U", LAGRANGE, FIRST);
+  
+
   mlSol.Initialize("All");    // initialize all varaibles to zero
   
-  // attach the boundary condition function and generate boundary data
+ 
+
+      // attach the boundary condition function and generate boundary data
       mlSol.AttachSetBoundaryConditionFunction(SetBoundaryCondition);
-//       mlSol.GenerateBdc("U");
+      mlSol.GenerateBdc("U");
 
       // define the multilevel problem attach the mlSol object to it
       MultiLevelProblem mlProb(&mlSol);
@@ -86,18 +91,14 @@ int main(int argc, char** args){
       // initilaize and solve the system
       system.init();
       system.solve();
- 
-  
+//----------------------------------------Problem End-----------------------------------------
 
-//   mlSol.Initialize("U", InitalValueU);
-  
-  
-  
-  
+  //mlSol.Initialize("U", InitalValueU);
+
+//----------------------------------------Print solution-----------------------------------------
   // print solutions
   std::vector < std::string > variablesToBePrinted;
   variablesToBePrinted.push_back("U");
- 
 
   VTKWriter vtkIO(&mlSol);
   vtkIO.write(DEFAULT_OUTPUTDIR, "biquadratic", variablesToBePrinted);
@@ -286,4 +287,5 @@ void AssemblePoissonProblem(MultiLevelProblem& ml_prob) {
 
   // ***************** END ASSEMBLY *******************
 }
+
 
