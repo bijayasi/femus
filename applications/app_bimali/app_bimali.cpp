@@ -1,5 +1,5 @@
 
-/** tutorial/Ex1
+/*tutorial/Ex1
  * This example shows how to:
  * initialize a femus application;
  * define the multilevel-mesh object mlMsh;
@@ -24,9 +24,9 @@ using namespace femus;
 bool SetBoundaryCondition(const std::vector < double >& x, const char solName[], double& value, const int faceName, const double time) {
   bool dirichlet = true; //dirichlet
   value = 0;
-
+/*
   if (faceName == 2)
-    dirichlet = false;
+    dirichlet = false;*/
 
   return dirichlet;
 }
@@ -46,21 +46,27 @@ int main(int argc, char** args) {
 
   // init Petsc-MPI communicator
   FemusInit mpinit(argc, args, MPI_COMM_WORLD);
-//----------------------------------------Solution Begin-----------------------------------------
+
   // define multilevel mesh
   MultiLevelMesh mlMsh;
   double scalingFactor = 1.;
   // read coarse level mesh and generate finers level meshes
-  mlMsh.ReadCoarseMesh("./input/square.neu", "seventh", scalingFactor);
+  // mlMsh.ReadCoarseMesh("./input/square.neu", "seventh", scalingFactor);
+      mlMsh.GenerateCoarseBoxMesh(8,8,0,-0.5, 5, -0.5,5,0., 0.,QUAD9,"seventh"
+                             );
+  
+       // mlMsh.GenerateCoarseBoxMesh(8,8,0,-0.5, 5, -0.5,5,0., 0.,QUAD9,"seventh"
+                             //);
+  
+  
+  
   /* "seventh" is the order of accuracy that is used in the gauss integration scheme
       probably in the furure it is not going to be an argument of this function   */
-  unsigned numberOfUniformLevels = 3;
+  unsigned numberOfUniformLevels = 1;
   unsigned numberOfSelectiveLevels = 0;
   mlMsh.RefineMesh(numberOfUniformLevels , numberOfUniformLevels + numberOfSelectiveLevels, NULL);
   mlMsh.PrintInfo();
-//----------------------------------------Solution End-----------------------------------------
-  
-//----------------------------------------Problem Begin-----------------------------------------
+
   // define the multilevel solution and attach the mlMsh object to it
   MultiLevelSolution mlSol(&mlMsh);
 
@@ -91,11 +97,13 @@ int main(int argc, char** args) {
       // initilaize and solve the system
       system.init();
       system.solve();
-//----------------------------------------Problem End-----------------------------------------
+// problem end 
 
   //mlSol.Initialize("U", InitalValueU);
-
-//----------------------------------------Print solution-----------------------------------------
+ 
+      
+      // print beginn
+      
   // print solutions
   std::vector < std::string > variablesToBePrinted;
   variablesToBePrinted.push_back("U");
@@ -287,5 +295,4 @@ void AssemblePoissonProblem(MultiLevelProblem& ml_prob) {
 
   // ***************** END ASSEMBLY *******************
 }
-
 
