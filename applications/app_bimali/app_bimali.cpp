@@ -192,15 +192,17 @@ int counter=0;
     unsigned kel = msh->IS_Mts2Gmt_elem[iel]; // mapping between paralell dof and mesh dof
     short unsigned kelGeom = el->GetElementType(kel);    // element geometry type
     unsigned nDofu  = el->GetElementDofNumber(kel, soluType);    // number of solution element dofs
+    
+    for (int i = 0; i < dim; i++) {
+      x[i].resize(nDofx);
+    }
     unsigned nDofx = el->GetElementDofNumber(kel, xType);    // number of coordinate element dofs
 
     // resize local arrays
     l2GMap.resize(nDofu);
     solu.resize(nDofu);
 
-    for (int i = 0; i < dim; i++) {
-      x[i].resize(nDofx);
-    }
+    
 
     Res.resize(nDofu);    //resize
     std::fill(Res.begin(), Res.end(), 0);    //set Res to zero
